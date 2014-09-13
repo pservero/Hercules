@@ -412,6 +412,10 @@ struct item_data {
 		unsigned autoequip: 1;
 		unsigned buyingstore : 1;
 		unsigned bindonequip : 1;
+		// [Cydh]
+		unsigned char minGroupID_item,
+			minGroupID_refine,
+			minGroupID_produce;
 	} flag;
 	struct {// item stacking limitation
 		unsigned short amount;
@@ -556,6 +560,9 @@ struct itemdb_interface {
 	void (*read_groups) (void);
 	void (*read_chains) (void);
 	void (*read_packages) (void);
+	/* */
+	void (*read_restriction) (void);
+	bool (*isRestrictedOf) (int nameid, struct map_session_data *sd, int8 type);
 	/* */
 	void (*write_cached_packages) (const char *config_filename);
 	bool (*read_cached_packages) (const char *config_filename);

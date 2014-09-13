@@ -1328,6 +1328,64 @@ void itemdb_read_combos() {
 	return;
 }
 
+/**
+* Check restriction for item
+* @param nameid Item ID
+* @param sd Player
+* @param type 1 - @item/@item2/@itembound/@itembound2; 2 - @refine/refine of @item2; 3 - @produce
+* @return False if no restriction, True if restricted
+* @author [Cydh]
+*/
+bool itemdb_isRestrictedOf(int nameid, struct map_session_data *sd, int8 type) {
+	struct item_data *id = itemdb_exists(nameid);
+	char msg[CHAT_SIZE_MAX];
+
+	if (!id || !sd)
+		return false;
+
+	if ((type == 1 && sd->group_id < id->flag.minGroupID_item)
+		|| (type == 3 && sd->group_id < id->flag.minGroupID_produce)
+		)
+	{
+		sprintf(msg, "Item '%s' (%d) cannot be created!", id->jname, id->nameid);
+		clif->colormes(sd->fd, COLOR_RED, msg);
+		return true;
+	}
+	if (type == 2 && sd->group_id < id->flag.minGroupID_refine) {
+		sprintf(msg, "Item '%s' (%d) cannot be refined!", id->jname, id->nameid);
+		clif->colormes(sd->fd, COLOR_RED, msg);
+		return true;
+	}
+	return false;
+}
+
+/**
+* Read item_restriction.txt
+* @author [Cydh]
+*/
+static bool itemdb_read_restriction_sub(char *str[], int column, int current) {
+	uint16 nameid = atoi(str[0]);
+	struct item_data *id = itemdb->exists(nameid);
+	if (!id) {
+		ShowError("itemdb_read_restriction_sub: Invalid item '%s'\n", str[0]);
+		return false;
+	}
+	id->flag.minGroupID_item = atoi(str[1]);
+	id->flag.minGroupID_refine = atoi(str[2]);
+	id->flag.minGroupID_produce = atoi(str[3]);
+	// Add yourself the flag
+	return true;
+}
+
+/**
+* Read item restriction from db/item_restriction.txt
+* <item_id>,<@item>,<@refine>,<@produce>
+* @author [Cydh]
+**/
+void itemdb_read_restriction(void) {
+	// Add yourself for more restriction, increase the min. & max. cols
+	sv->readdb(map->db_path, "item_restriction.txt", ',', 4, 4, -1, itemdb_read_restriction_sub);
+}
 
 
 /*======================================
@@ -2038,6 +2096,7 @@ void itemdb_read(bool minimal) {
 	itemdb->read_groups();
 	itemdb->read_chains();
 	itemdb->read_packages();
+	itemdb->read_restriction();
 
 }
 
@@ -2278,6 +2337,9 @@ void itemdb_defaults(void) {
 	itemdb->read_groups = itemdb_read_groups;
 	itemdb->read_chains = itemdb_read_chains;
 	itemdb->read_packages = itemdb_read_packages;
+	/* */
+	itemdb->read_restriction = itemdb_read_restriction;
+	itemdb->isRestrictedOf = itemdb_isRestrictedOf;
 	/* */
 	itemdb->write_cached_packages = itemdb_write_cached_packages;
 	itemdb->read_cached_packages = itemdb_read_cached_packages;

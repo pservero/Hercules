@@ -1145,7 +1145,10 @@ ACMD(item)
 		clif->message(fd, msg_txt(19)); // Invalid item ID or name.
 		return false;
 	}
-	
+
+	if (itemdb->isRestrictedOf(item_data->nameid, sd, 1))
+		return false;
+
 	if(!strcmpi(info->command,"itembound") ) {
 		if( !(bound >= IBT_MIN && bound <= IBT_MAX) ) {
 			clif->message(fd, msg_txt(298)); // Invalid bound type
@@ -1241,6 +1244,10 @@ ACMD(item2)
 	    (item_data = itemdb->exists(atoi(item_name))) != NULL)
 		item_id = item_data->nameid;
 	
+
+	if (itemdb->isRestrictedOf(item_data->nameid, sd, 1) || itemdb->isRestrictedOf(item_data->nameid, sd, 2))
+		return false;
+
 	if (item_id > 500) {
 		int flag = 0;
 		int loop, get_count, i;
@@ -2041,7 +2048,10 @@ ACMD(refine)
 		
 		if(position && !(sd->status.inventory[i].equip & position))
 			continue;
-		
+
+		if (itemdb->isRestrictedOf(sd->status.inventory[i].nameid, sd, 2))
+			continue;
+
 		final_refine = cap_value(sd->status.inventory[i].refine + refine, 0, MAX_REFINE);
 		if (sd->status.inventory[i].refine != final_refine) {
 			sd->status.inventory[i].refine = final_refine;
@@ -2094,8 +2104,11 @@ ACMD(produce)
 		clif->message(fd, msg_txt(170)); //This item is not an equipment.
 		return false;
 	}
-	
+
 	item_id = item_data->nameid;
+
+	if (itemdb->isRestrictedOf(item_data->nameid, sd, 3))
+		return false;
 	
 	if (itemdb->isequip2(item_data)) {
 		int flag = 0;

@@ -1,0 +1,18 @@
+// =============================================
+// Restricted item for lower groups
+// [Cydh]
+// house.bad@gmail.com
+// =============================================
+// Structure:
+// 		<item_id>,<@item>,<@refine>,<@produce>
+// ---------------------------------------------
+// item_id:  Item ID
+// @item:    Min. Group ID can obtained this item by @item
+// @refine:  Min. Group ID can refined this item by @refine (also affected the @item2 refine number)
+// @produce: Min. Group ID can obtained this item by @produce
+// =============================================
+// NOTES:
+//	- Every line must be written completely!
+// ---------------------------------------------
+//1230,99,99,100
+//1161,99,100,99
